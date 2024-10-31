@@ -4,8 +4,8 @@
   "description": "Weather-based travel advisory application",
   "main": "main.js",
   "scripts": {
-    "start": "electron-forge start",
-    "dev": "NODE_ENV=development electron-forge start",
+    "start": "electron .",
+    "dev": "NODE_ENV=development electron .",
     "build": "electron-builder",
     "test": "echo \"Error: no test specified\" && exit 1",
     "package": "electron-forge package",
