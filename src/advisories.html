@@ -8,6 +8,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
+    <div class="title-bar">
+        <div class="title-bar-content">
+            <i class="fas fa-cloud-sun title-bar-icon"></i>
+            <span class="title-bar-title">TravelAdvisr</span>
+        </div>
+        <div class="title-bar-controls">
+            <button class="title-bar-button minimize" onclick="window.electronAPI.minimizeWindow()"></button>
+            <button class="title-bar-button maximize" onclick="window.electronAPI.maximizeWindow()"></button>
+            <button class="title-bar-button close" onclick="window.electronAPI.closeWindow()"></button>
+        </div>
+    </div>
+
     <div class="container">
         <!-- Header -->
         <header>
@@ -76,6 +88,17 @@
                             <div class="empty-advisory">
                                 <i class="fas fa-suitcase"></i>
                                 <p>Packing suggestions will appear here</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transport Recommendations -->
+                    <div class="transport-recommendations">
+                        <h3>Transport Recommendations</h3>
+                        <div id="transportRecommendations" class="advisory-list">
+                            <div class="empty-advisory">
+                                <i class="fas fa-bus"></i>
+                                <p>Transport recommendations will appear here</p>
                             </div>
                         </div>
                     </div>

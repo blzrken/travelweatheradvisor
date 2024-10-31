@@ -625,6 +625,7 @@ class AdvisoriesManager {
         // Generate recommendations
         this.generateActivityRecommendations(weatherData);
         this.generateClothingRecommendations(weatherData);
+        this.generateTransportRecommendations(weatherData);
 
         // Add the "Add All" button to the advisory container
         const advisoryContainer = document.querySelector('.advisory-container');
@@ -725,6 +726,98 @@ class AdvisoriesManager {
         `).join('');
     }
 
+    generateTransportRecommendations(weatherData) {
+        const { current } = weatherData;
+        const transport = [];
+
+        // Base conditions
+        const conditions = {
+            isRaining: current.precip_mm > 0,
+            heavyRain: current.precip_mm > 5,
+            strongWind: current.wind_kph > 40,
+            poorVisibility: current.vis_km < 5,
+            isHot: current.temp_c > 30,
+            isCold: current.temp_c < 10,
+            isNight: this.isNightTime(weatherData.location.localtime)
+        };
+
+        // Public Transport
+        transport.push({
+            mode: 'Public Transport',
+            recommended: true,
+            icon: 'fa-bus',
+            description: 'Available and convenient option for most conditions.',
+            safety: conditions.isRaining ? 'Stay dry while traveling' : 'Regular service available'
+        });
+
+        // Walking
+        if (!conditions.isRaining && !conditions.isHot && !conditions.isCold) {
+            transport.push({
+                mode: 'Walking',
+                recommended: true,
+                icon: 'fa-walking',
+                description: 'Perfect weather for walking and exploring the city.',
+                safety: 'Comfortable conditions for pedestrians'
+            });
+        }
+
+        // Cycling
+        if (!conditions.isRaining && !conditions.strongWind && !conditions.isHot) {
+            transport.push({
+                mode: 'Cycling',
+                recommended: true,
+                icon: 'fa-bicycle',
+                description: 'Good conditions for cycling.',
+                safety: 'Remember to wear safety gear'
+            });
+        }
+
+        // Taxi/Ride-sharing
+        if (conditions.isRaining || conditions.isNight || conditions.poorVisibility) {
+            transport.push({
+                mode: 'Taxi/Ride-sharing',
+                recommended: true,
+                icon: 'fa-taxi',
+                description: 'Recommended for current weather conditions.',
+                safety: 'Door-to-door service available'
+            });
+        }
+
+        // Render transport recommendations
+        const transportContainer = document.getElementById('transportRecommendations');
+        if (transport.length > 0) {
+            transportContainer.innerHTML = transport.map(item => `
+                <div class="advisory-item">
+                    <div class="transport-recommendation ${item.recommended ? 'recommended' : ''}">
+                        <div class="transport-header">
+                            <i class="fas ${item.icon}"></i>
+                            <h4>${item.mode}</h4>
+                        </div>
+                        <div class="transport-details">
+                            <p>${item.description}</p>
+                            <div class="safety-info">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>${item.safety}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            transportContainer.innerHTML = `
+                <div class="empty-advisory">
+                    <i class="fas fa-bus"></i>
+                    <p>No specific transport recommendations for current conditions</p>
+                </div>
+            `;
+        }
+    }
+
+    isNightTime(localtime) {
+        const hour = new Date(localtime).getHours();
+        return hour < 6 || hour > 20;
+    }
+
     async addToItinerary(location, weatherData, activities, packing) {
         try {
             const itineraryItem = {
@@ -785,7 +878,6 @@ class AdvisoriesManager {
         `;
         document.body.appendChild(modal);
 
-        // Handle form submission
         document.getElementById('confirmAdd').addEventListener('click', async () => {
             const userName = document.getElementById('userName').value.trim();
             if (!userName) {
@@ -811,7 +903,8 @@ class AdvisoriesManager {
                 details: {
                     weather: this.getCurrentWeatherSummary(),
                     activities: this.getActivityRecommendations(),
-                    packing: this.getPackingList()
+                    packing: this.getPackingList(),
+                    transport: this.getTransportRecommendations()
                 }
             };
 
@@ -829,6 +922,17 @@ class AdvisoriesManager {
                 this.showToast('Failed to add to itinerary', 'error');
             }
         });
+    }
+
+    getTransportRecommendations() {
+        const transportElements = document.querySelectorAll('#transportRecommendations .advisory-item');
+        return Array.from(transportElements)
+            .map(el => {
+                const mode = el.querySelector('h4').textContent;
+                const description = el.querySelector('.transport-details p').textContent;
+                return `${mode}: ${description}`;
+            })
+            .join('\n');
     }
 
     async removeFromItinerary(id) {
@@ -977,6 +1081,17 @@ class AdvisoriesManager {
     }
 
     formatActivityContent(item) {
+        // Get transport recommendations
+        const transportElements = document.querySelectorAll('#transportRecommendations .advisory-item');
+        const transportRecommendations = Array.from(transportElements)
+            .map(el => {
+                const mode = el.querySelector('h4').textContent;
+                const description = el.querySelector('.transport-details p').textContent;
+                const safety = el.querySelector('.safety-info span').textContent;
+                return `- ${mode}: ${description} (${safety})`;
+            })
+            .join('\n');
+
         return `Travel Plan Details:
 -------------------
 Created by: ${item.userName}
@@ -991,6 +1106,9 @@ ${item.details.activities}
 
 Packing List:
 ${item.details.packing}
+
+Transport Recommendations:
+${transportRecommendations}
 -------------------
 Created: ${new Date().toLocaleString()}`;
     }
@@ -1256,42 +1374,31 @@ Created: ${new Date().toLocaleString()}`;
 
     async readTextFile(itemId) {
         try {
-            // Find the item in the itinerary list
             const item = this.itineraryList.find(i => i.id === parseInt(itemId));
             if (!item) {
                 this.showToast('Itinerary not found', 'error');
                 return;
             }
 
-            // Create and show modal
+            // Generate the content
+            const content = this.formatActivityContent(item);
+
             const modal = document.createElement('div');
-            modal.className = 'modal';
+            modal.className = 'modal print-container';
             modal.innerHTML = `
                 <div class="modal-content details-modal">
-                    <h3>${item.location} Travel Plan</h3>
-                    <div class="details-content">
-                        <pre id="fileContent" class="file-content">
-Travel Plan Details:
--------------------
-Created by: ${item.userName}
-Location: ${item.location}
-Date: ${item.date}
-
-Weather Conditions:
-${item.details.weather}
-
-Recommended Activities:
-${item.details.activities}
-
-Packing List:
-${item.details.packing}
--------------------
-Created: ${new Date(item.id).toLocaleDateString()}, ${new Date(item.id).toLocaleTimeString()}
-                        </pre>
+                    <div class="print-content">
+                        <h3>${item.location} Travel Plan</h3>
+                        <div class="details-content">
+                            <pre id="fileContent" class="file-content">${content}</pre>
+                        </div>
                     </div>
                     <div class="modal-actions">
                         <button class="secondary-btn" onclick="this.closest('.modal').remove()">
                             <i class="fas fa-times"></i> Close
+                        </button>
+                        <button class="primary-btn" onclick="window.print()">
+                            <i class="fas fa-print"></i> Print
                         </button>
                     </div>
                 </div>
@@ -1314,6 +1421,36 @@ Created: ${new Date(item.id).toLocaleDateString()}, ${new Date(item.id).toLocale
         } catch (error) {
             console.error('Error saving text file:', error);
             throw new Error('Failed to save text file: ' + error.message);
+        }
+    }
+
+    async downloadTextFile(fileName) {
+        try {
+            // Request the file content from the main process
+            const fileContent = await window.electronAPI.readTextFile({
+                fileName,
+                directory: 'TextFiles'
+            });
+
+            // Create a blob from the content
+            const blob = new Blob([fileContent], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+
+            // Create a temporary link and trigger the download
+            const downloadLink = document.createElement('a');
+            downloadLink.href = url;
+            downloadLink.download = fileName;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+
+            // Cleanup
+            document.body.removeChild(downloadLink);
+            window.URL.revokeObjectURL(url);
+
+            this.showToast('File downloaded successfully', 'success');
+        } catch (error) {
+            console.error('Error downloading file:', error);
+            this.showToast('Failed to download file', 'error');
         }
     }
 }
