@@ -4,10 +4,12 @@
   "description": "Weather-based travel advisory application",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
-    "dev": "NODE_ENV=development electron .",
+    "start": "electron-forge start",
+    "dev": "NODE_ENV=development electron-forge start",
     "build": "electron-builder",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
   },
   "author": "Your Name",
   "license": "ISC",
