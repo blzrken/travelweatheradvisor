@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Advisories - TravelAdvisr</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="header-content">
+                <div class="logo">
+                    <a href="index.html" class="logo-link">
+                        <i class="fas fa-cloud-sun"></i>
+                        <span class="logo-text">TravelAdvisr</span>
+                    </a>
+                </div>
+                <nav>
+                    <a href="weather.html" class="nav-btn">
+                        <i class="fas fa-cloud"></i>
+                        Weather
+                    </a>
+                    <a href="advisories.html" class="nav-btn active">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Advisories
+                    </a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Search Section -->
+        <div class="search-container">
+            <input type="text" id="locationSearch" placeholder="Search for a destination...">
+            <div id="suggestionsList" class="suggestions-list"></div>
+        </div>
+
+        <!-- Popular Destinations -->
+        <div class="popular-destinations">
+            <h3>Popular Destinations</h3>
+            <div id="randomCountries" class="countries-grid"></div>
+        </div>
+
+        <!-- Advisories Content -->
+        <div class="advisories-content">
+            <div class="main-content">
+                <div class="advisory-container">
+                    <!-- Weather Advisory -->
+                    <div class="weather-advisory">
+                        <h3>Weather Advisory</h3>
+                        <div id="weatherAdvisories" class="advisory-list">
+                            <div class="empty-advisory">
+                                <i class="fas fa-cloud"></i>
+                                <p>Search for a destination to view weather advisories</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Activity Recommendations -->
+                    <div class="activity-suggestions">
+                        <h3>Recommended Activities</h3>
+                        <div id="activitySuggestions" class="advisory-list">
+                            <div class="empty-advisory">
+                                <i class="fas fa-hiking"></i>
+                                <p>Activity recommendations will appear here</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Clothing Recommendations -->
+                    <div class="clothing-recommendations">
+                        <h3>What to Pack</h3>
+                        <div id="clothingRecommendations" class="advisory-list">
+                            <div class="empty-advisory">
+                                <i class="fas fa-suitcase"></i>
+                                <p>Packing suggestions will appear here</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Itinerary Sidebar -->
+            <div class="itinerary-sidebar">
+                <h3>Itinerary List</h3>
+                <div id="itineraryList" class="itinerary-list">
+                    <div class="empty-itinerary">
+                        <i class="fas fa-list-ul"></i>
+                        <p>Itinerary list is empty!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add this right before the closing </div> of the container -->
+        <button id="floatingAddBtn" class="floating-btn">
+            <i class="fas fa-plus"></i>
+            <span class="btn-text">Add to Itinerary</span>
+        </button>
+
+        <!-- Toast Container -->
+        <div id="toast-container"></div>
+    </div>
+
+    <script src="js/advisories.js"></script>
+    <script src="js/ui.js"></script>
+    <div class="page-transition"></div>
+</body>
+</html> 

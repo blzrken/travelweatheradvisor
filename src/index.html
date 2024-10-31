@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>TravelAdvisr</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="welcome-container">
+        <div class="welcome-content">
+            <div class="logo-container">
+                <div class="logo-animation">
+                    <i class="fas fa-cloud-sun"></i>
+                </div>
+                <div class="weather-elements">
+                    <i class="fas fa-cloud weather-icon"></i>
+                    <i class="fas fa-sun weather-icon"></i>
+                    <i class="fas fa-bolt weather-icon"></i>
+                    <i class="fas fa-snowflake weather-icon"></i>
+                    <i class="fas fa-cloud-rain weather-icon"></i>
+                </div>
+            </div>
+            <h1 class="welcome-title">TravelAdvisr</h1>
+            <p class="welcome-description">
+                Your intelligent travel companion providing real-time updates, smart advisories, 
+                and comprehensive forecasts to help you plan your day with confidence.
+            </p>
+            <a href="weather.html" class="get-started-btn" id="getStartedBtn">
+                Get Started
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Updated splash screen -->
+    <div class="splash-screen" id="splashScreen">
+        <div class="splash-content">
+            <i class="fas fa-cloud-sun splash-icon"></i>
+            <h2 class="splash-text">Loading TravelAdvisr...</h2>
+            <div class="loading-bar"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const getStartedBtn = document.getElementById('getStartedBtn');
+            const splashScreen = document.getElementById('splashScreen');
+
+            getStartedBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetUrl = getStartedBtn.href;
+
+                // Show splash screen with animation
+                splashScreen.style.display = 'flex';
+                setTimeout(() => {
+                    splashScreen.style.opacity = '1';
+                }, 10);
+
+                // Redirect after animation
+                setTimeout(() => {
+                    window.location.href = targetUrl;
+                }, 2000);
+            });
+        });
+    </script>
+</body>
+</html>
