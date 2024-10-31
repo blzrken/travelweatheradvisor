@@ -487,7 +487,7 @@ class AdvisoriesManager {
                              onerror="this.src='https://flagcdn.com/24x18/xx.png'">
                         <div class="location-info">
                             <span class="location-name">${location.name}</span>
-                            <span class="location-country">${location.country}</span>
+                            <span class="location-country">${location.region}, ${location.country}</span>
                         </div>
                     </div>
                 `;
@@ -1097,7 +1097,13 @@ Created: ${new Date().toLocaleString()}`;
                     <div class="form-group">
                         <input type="text" id="updateUserName" 
                                placeholder="Enter your name" 
-                               value="${item.userName}" required>
+                               value="${item.userName || ''}" required>
+                    </div>
+                    <div class="form-group search-container">
+                        <input type="text" id="updateLocation" 
+                               placeholder="Search for a destination..."
+                               value="${item.location}" required>
+                        <div id="updateLocationSuggestions" class="suggestions-list"></div>
                     </div>
                     <div class="modal-actions">
                         <button class="secondary-btn" onclick="this.closest('.modal').remove()">
@@ -1113,6 +1119,72 @@ Created: ${new Date().toLocaleString()}`;
             `;
             document.body.appendChild(modal);
 
+            // Add location search functionality with debounce
+            const locationInput = document.getElementById('updateLocation');
+            const suggestionsContainer = document.getElementById('updateLocationSuggestions');
+            let selectedLocation = item.location;
+
+            // Add debounced input handler
+            locationInput.addEventListener('input', debounce(async (e) => {
+                const query = e.target.value.trim();
+                if (!query) {
+                    suggestionsContainer.innerHTML = '';
+                    return;
+                }
+
+                try {
+                    const response = await fetch(
+                        `${this.geoApiUrl}?key=${this.weatherApiKey}&q=${query}`
+                    );
+                    
+                    if (!response.ok) throw new Error('Location not found');
+                    
+                    const locations = await response.json();
+                    
+                    if (!locations.length) {
+                        suggestionsContainer.innerHTML = '<div class="no-suggestions">No locations found</div>';
+                        return;
+                    }
+
+                    suggestionsContainer.innerHTML = locations.map(location => `
+                        <div class="suggestion-item" data-location="${location.name}, ${location.country}">
+                            <img src="https://flagcdn.com/24x18/${location.country.toLowerCase()}.png" 
+                                 alt="${location.country} flag"
+                                 onerror="this.src='https://flagcdn.com/24x18/xx.png'">
+                            <div class="location-info">
+                                <span class="location-name">${location.name}</span>
+                                <span class="location-country">${location.region}, ${location.country}</span>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    // Add click handlers for suggestions
+                    suggestionsContainer.querySelectorAll('.suggestion-item').forEach(suggestion => {
+                        suggestion.addEventListener('click', () => {
+                            selectedLocation = suggestion.dataset.location;
+                            locationInput.value = selectedLocation;
+                            suggestionsContainer.innerHTML = '';
+                        });
+                    });
+                } catch (error) {
+                    console.error('Error fetching locations:', error);
+                    suggestionsContainer.innerHTML = `
+                        <div class="suggestion-item error">
+                            <i class="fas fa-exclamation-circle"></i>
+                            No locations found
+                        </div>
+                    `;
+                }
+            }, 300));
+
+            // Close suggestions when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.search-container')) {
+                    suggestionsContainer.innerHTML = '';
+                }
+            });
+
+            // Update the form submission handler
             document.getElementById('confirmUpdate').addEventListener('click', async () => {
                 const userName = document.getElementById('updateUserName').value.trim();
                 if (!userName) {
@@ -1120,20 +1192,31 @@ Created: ${new Date().toLocaleString()}`;
                     return;
                 }
 
+                if (!selectedLocation) {
+                    this.showToast('Please select a destination', 'error');
+                    return;
+                }
+
                 try {
-                    // Read existing file content
-                    const existingContent = await window.electronAPI.readActivityFile({
-                        fileName: item.fileName,
-                        directory: 'TextFiles'
+                    // Get the weather data for the new location
+                    const weatherResponse = await fetch(
+                        `${this.weatherApiUrl}?key=${this.weatherApiKey}&q=${selectedLocation}&days=1`
+                    );
+                    if (!weatherResponse.ok) throw new Error('Failed to fetch weather data');
+                    const weatherData = await weatherResponse.json();
+
+                    // Update the file content with new location, username and weather
+                    const updatedContent = this.formatActivityContent({
+                        userName,
+                        location: selectedLocation,
+                        date: new Date().toLocaleDateString(),
+                        details: {
+                            weather: `Temperature: ${weatherData.current.temp_c}°C, Condition: ${weatherData.current.condition.text}`,
+                            activities: this.getActivityRecommendations(),
+                            packing: this.getPackingList()
+                        }
                     });
 
-                    // Update only the name in the content
-                    const updatedContent = existingContent.replace(
-                        /Created by: .+/,
-                        `Created by: ${userName}`
-                    );
-
-                    // Save the updated file
                     await window.electronAPI.saveActivityFile({
                         fileName: item.fileName,
                         content: updatedContent,
@@ -1142,20 +1225,22 @@ Created: ${new Date().toLocaleString()}`;
 
                     // Update item in memory
                     item.userName = userName;
+                    item.location = selectedLocation;
+                    item.details.weather = `Temperature: ${weatherData.current.temp_c}°C, Condition: ${weatherData.current.condition.text}`;
 
                     // Save to localStorage and update display
                     this.saveAndRender();
                     
                     modal.remove();
-                    this.showToast('Name updated successfully', 'success');
+                    this.showToast('Itinerary updated successfully', 'success');
                 } catch (error) {
-                    console.error('Error updating name:', error);
-                    this.showToast('Failed to update name', 'error');
+                    console.error('Error updating itinerary:', error);
+                    this.showToast('Failed to update itinerary', 'error');
                 }
             });
         } catch (error) {
             console.error('Error showing update modal:', error);
-            this.showToast('Error updating name', 'error');
+            this.showToast('Error updating itinerary', 'error');
         }
     }
 
