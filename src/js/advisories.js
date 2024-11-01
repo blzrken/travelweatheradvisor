@@ -177,7 +177,7 @@ class AdvisoriesManager {
             <div class="itinerary-item" data-id="${item.id}">
                 <div class="itinerary-header">
                     <div class="itinerary-title">
-                        <h4>${item.location}</h4>
+                        <h4>${item.location}${item.country ? `, ${item.country}` : ''}</h4>
                         <span class="itinerary-user">Created by: ${item.userName || 'Anonymous'}</span>
                     </div>
                     <span class="itinerary-date">${item.date}</span>
@@ -897,6 +897,7 @@ class AdvisoriesManager {
                 id: Date.now(),
                 userName: userName,
                 location: location.name,
+                country: location.country,
                 date: date,
                 type: 'comprehensive',
                 activity: 'Complete Travel Plan',
@@ -1023,7 +1024,6 @@ class AdvisoriesManager {
     }
 
     formatActivityContent(item) {
-        // Get transport recommendations
         const transportElements = document.querySelectorAll('#transportRecommendations .advisory-item');
         const transportRecommendations = Array.from(transportElements)
             .map(el => {
@@ -1037,7 +1037,7 @@ class AdvisoriesManager {
         return `Travel Plan Details:
 -------------------
 Created by: ${item.userName}
-Location: ${item.location}
+Location: ${item.location}${item.country ? `, ${item.country}` : ''}
 Date: ${item.date}
 
 Weather Conditions:
@@ -1125,8 +1125,7 @@ Created: ${new Date().toLocaleString()}`;
             // Show success message
             this.showToast(`Weather data loaded for ${cityName}`, 'success');
         } catch (error) {
-            console.error('Error fetching weather data:', error);
-            this.showToast(`Failed to load weather data for ${cityName}`, 'error');
+
         }
     }
 
@@ -1265,10 +1264,14 @@ Created: ${new Date().toLocaleString()}`;
                     if (!weatherResponse.ok) throw new Error('Failed to fetch weather data');
                     const weatherData = await weatherResponse.json();
 
+                    // Extract location and country from weatherData
+                    const { name: locationName, country } = weatherData.location;
+
                     // Update the file content with new location, username and weather
                     const updatedContent = this.formatActivityContent({
                         userName,
-                        location: selectedLocation,
+                        location: locationName,
+                        country: country,
                         date: new Date().toLocaleDateString(),
                         details: {
                             weather: `Temperature: ${weatherData.current.temp_c}°C, Condition: ${weatherData.current.condition.text}`,
@@ -1285,7 +1288,8 @@ Created: ${new Date().toLocaleString()}`;
 
                     // Update item in memory
                     item.userName = userName;
-                    item.location = selectedLocation;
+                    item.location = locationName;
+                    item.country = country;  // Add country to the item
                     item.details.weather = `Temperature: ${weatherData.current.temp_c}°C, Condition: ${weatherData.current.condition.text}`;
 
                     // Save to localStorage and update display
@@ -1330,7 +1334,7 @@ Created: ${new Date().toLocaleString()}`;
             modal.innerHTML = `
                 <div class="modal-content details-modal">
                     <div class="print-content">
-                        <h3>${item.location} Travel Plan</h3>
+                        <h3>${item.location}${item.country ? `, ${item.country}` : ''} Travel Plan</h3>
                         <div class="details-content">
                             <pre id="fileContent" class="file-content">${content}</pre>
                         </div>
