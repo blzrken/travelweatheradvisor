@@ -996,64 +996,6 @@ class AdvisoriesManager {
         }
     }
 
-    async clearAllItineraries() {
-        try {
-            // Show confirmation modal
-            const modal = document.createElement('div');
-            modal.className = 'modal';
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <h3>Clear All Itineraries</h3>
-                    <p>Are you sure you want to delete all itineraries? This action cannot be undone.</p>
-                    <div class="modal-actions">
-                        <button class="secondary-btn" onclick="this.closest('.modal').remove()">
-                            <i class="fas fa-times"></i> Cancel
-                        </button>
-                        <button class="delete-btn" id="confirmClearAll">
-                            <i class="fas fa-trash-alt"></i> Clear All
-                        </button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-
-            // Handle clear all confirmation
-            document.getElementById('confirmClearAll').addEventListener('click', async () => {
-                try {
-                    // Delete all files from TextFiles directory
-                    for (const item of this.itineraryList) {
-                        try {
-                            await window.electronAPI.deleteActivityFile({
-                                fileName: item.fileName,
-                                directory: 'TextFiles'
-                            });
-                        } catch (fileError) {
-                            console.error('Error deleting file:', fileError);
-                            // Continue with next file even if one fails
-                        }
-                    }
-
-                    // Clear the itinerary list
-                    this.itineraryList = [];
-                    
-                    // Update localStorage and UI
-                    localStorage.setItem('itineraries', JSON.stringify(this.itineraryList));
-                    this.updateItineraryList();
-                    
-                    // Close modal and show success message
-                    modal.remove();
-                    this.showToast('All itineraries cleared successfully', 'success');
-                } catch (error) {
-                    console.error('Error clearing itineraries:', error);
-                    this.showToast('Failed to clear all itineraries', 'error');
-                    modal.remove();
-                }
-            });
-        } catch (error) {
-            console.error('Error showing clear all modal:', error);
-            this.showToast('Error showing clear all modal', 'error');
-        }
-    }
 
     // File management helper methods
     generateFileName(activity) {
