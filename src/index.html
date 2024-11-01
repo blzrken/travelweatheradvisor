@@ -7,11 +7,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
+    <audio id="backgroundAudio" autoplay loop>
+        <source src="assets/sh3 audio.mp3" type="audio/mp3">
+        Your browser does not support the audio element.
+    </audio>
+
     <div class="title-bar">
         <div class="title-bar-content">
             <i class="fas fa-cloud-sun title-bar-icon"></i>
             <span class="title-bar-title">TravelAdvisr</span>
         </div>
+        <button id="audioControl" class="audio-control" title="Mute audio">
+            <i class="fas fa-volume-up"></i>
+        </button>
         <div class="title-bar-controls">
             <button class="title-bar-button minimize" onclick="window.electronAPI.minimizeWindow()"></button>
             <button class="title-bar-button maximize" onclick="window.electronAPI.maximizeWindow()"></button>
@@ -58,18 +66,40 @@
         document.addEventListener('DOMContentLoaded', () => {
             const getStartedBtn = document.getElementById('getStartedBtn');
             const splashScreen = document.getElementById('splashScreen');
+            const audioControl = document.getElementById('audioControl');
+            const backgroundAudio = document.getElementById('backgroundAudio');
+            
+            backgroundAudio.volume = 0.3; // Set initial volume to 30%
+            backgroundAudio.muted = false;
+
+            document.addEventListener('click', () => {
+                if (backgroundAudio.paused) {
+                    backgroundAudio.play();
+                }
+            }, { once: true });
+
+            audioControl.addEventListener('click', () => {
+                const icon = audioControl.querySelector('i');
+                if (backgroundAudio.muted) {
+                    backgroundAudio.muted = false;
+                    icon.className = 'fas fa-volume-up';
+                    audioControl.setAttribute('title', 'Mute audio');
+                } else {
+                    backgroundAudio.muted = true;
+                    icon.className = 'fas fa-volume-mute';
+                    audioControl.setAttribute('title', 'Unmute audio');
+                }
+            });
 
             getStartedBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 const targetUrl = getStartedBtn.href;
 
-                // Show splash screen with animation
                 splashScreen.style.display = 'flex';
                 setTimeout(() => {
                     splashScreen.style.opacity = '1';
                 }, 10);
 
-                // Redirect after animation
                 setTimeout(() => {
                     window.location.href = targetUrl;
                 }, 2000);

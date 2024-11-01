@@ -665,18 +665,26 @@ class AdvisoriesManager {
             });
         }
 
-        // Render activities
+        // Render activities or no-activities message
         const activityContainer = document.getElementById('activitySuggestions');
-        activityContainer.innerHTML = activities.map(activity => `
-            <div class="advisory-item">
-                <i class="fas ${activity.icon}"></i>
-                <div class="advisory-content">
-                    <h4>${activity.title}</h4>
-                    <p>${activity.description}</p>
-
+        if (activities.length > 0) {
+            activityContainer.innerHTML = activities.map(activity => `
+                <div class="advisory-item">
+                    <i class="fas ${activity.icon}"></i>
+                    <div class="advisory-content">
+                        <h4>${activity.title}</h4>
+                        <p>${activity.description}</p>
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `).join('');
+        } else {
+            activityContainer.innerHTML = `
+                <div class="empty-advisory">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>No activity recommendations available for current weather conditions in ${location.name}</p>
+                </div>
+            `;
+        }
     }
 
     generateClothingRecommendations(weatherData) {
@@ -1032,7 +1040,7 @@ class AdvisoriesManager {
                 const safety = el.querySelector('.safety-info span').textContent;
                 return `- ${mode}: ${description} (${safety})`;
             })
-            .join('\n');
+            .join('\n') || 'No transport recommendations available';
 
         return `Travel Plan Details:
 -------------------
@@ -1044,10 +1052,10 @@ Weather Conditions:
 ${item.details.weather}
 
 Recommended Activities:
-${item.details.activities}
+${item.details.activities || 'No activity recommendations available for current conditions'}
 
 Packing List:
-${item.details.packing}
+${item.details.packing || 'No packing recommendations available'}
 
 Transport Recommendations:
 ${transportRecommendations}
@@ -1062,7 +1070,18 @@ Created: ${new Date().toLocaleString()}`;
 
     getActivityRecommendations() {
         const activityElements = document.querySelectorAll('#activitySuggestions .advisory-item');
-        return Array.from(activityElements).map(el => el.querySelector('h4').textContent).join('\n');
+        if (activityElements.length > 0) {
+            return Array.from(activityElements)
+                .map(el => {
+                    const title = el.querySelector('h4').textContent;
+                    const description = el.querySelector('p').textContent;
+                    return `- ${title}: ${description}`;
+                })
+                .join('\n');
+        } else {
+            const emptyMessage = document.querySelector('#activitySuggestions .empty-advisory p');
+            return emptyMessage ? emptyMessage.textContent : 'No activity recommendations available';
+        }
     }
 
     getPackingList() {
